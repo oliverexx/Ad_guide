@@ -25,16 +25,17 @@ show_banner() {
     clear
     echo -e "${BLUE}"
     echo "===================================================================================="
-    echo "|                   GUÍA COMPLETA DE PENTESTING EN ACTIVE DIRECTORY                  |"
+    echo "|                         PENTESTING EN ACTIVE DIRECTORY                           |"
     echo "|                         Manual de Comandos y Técnicas                            |"
     echo "===================================================================================="
     echo -e "${NC}"
     echo -e "${YELLOW}Domain:${NC} $DOMAIN"
     echo -e "${YELLOW}Domain Controller:${NC} $DC_IP"
     echo -e "${YELLOW}Usuario:${NC} $USERNAME"
-    echo "===================================================================================="
+    echo "==================================================================================================="
     echo -e "${RED}NOTA: Esta es una guía informativa. Los comandos se muestran pero no se ejecutan.${NC}"
-    echo "===================================================================================="
+    echo -e "${RED}Creator: github: https://github.com/oliverexx Linkedin:www.linkedin.com/in/axel-tear${NC}"
+    echo "==================================================================================================="
     echo
 }
 
