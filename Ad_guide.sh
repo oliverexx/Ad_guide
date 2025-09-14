@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Active Directory Pentesting Interactive Guide - Versión Completa y Mejorada
-# Guía informativa - No ejecuta comandos automáticamente
+# Active Directory Pentesting Interactive Guide
+# Guía informativa
 
 # Colores para la interfaz
 RED='\033[0;31m'
